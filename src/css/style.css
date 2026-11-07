@@ -1,0 +1,584 @@
+
+:root {
+    --bg-dark: #20242c;
+    --tabletop-color: #262c36;
+    --panel-bg: rgba(28, 33, 41, 0.95);
+    --accent: #2e78d6;
+    --accent-hover: #4589e8;
+    --text-primary: #ffffff;
+    --text-muted: #9aa5b5;
+    --border-color: rgba(255, 255, 255, 0.12);
+}
+
+body {
+    background-color: var(--tabletop-color);
+}
+
+/* Easybrain Clean iOS Header */
+header {
+    height: 48px;
+    background-color: #1a1e26;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.btn {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px; /* iOS pill buttons */
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn.active {
+    background-color: var(--accent);
+    border-color: var(--accent-hover);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(46, 120, 214, 0.5);
+}
+
+:root {
+    --bg-dark: #0f1216;
+    --panel-bg: #1c2128;
+    --accent: #388bfd;
+    --accent-hover: #58a6ff;
+    --text-primary: #f0f6fc;
+    --text-muted: #8b949e;
+    --border-color: #30363d;
+    --success: #238636;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Navbar */
+header {
+    height: 56px;
+    background-color: var(--panel-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 10;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 24px;
+}
+
+.logo-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Buttons */
+.btn {
+    background-color: #21262d;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.btn:hover {
+    background-color: #30363d;
+    border-color: #8b949e;
+}
+
+.btn.active {
+    background-color: var(--accent);
+    border-color: var(--accent-hover);
+    color: #ffffff;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    border-color: var(--accent-hover);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+/* Progress bar in header */
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.progress-bar-bg {
+    width: 100px;
+    height: 8px;
+    background: #30363d;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #388bfd, #2ea043);
+    transition: width 0.3s ease;
+}
+
+/* Main Viewport */
+main {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #111418;
+}
+
+#puzzleCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+/* Modals & Gallery Overlays (no backdrop-filter blur over full-screen Retina canvas!) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 10, 14, 0.84);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 650px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+}
+
+/* Gallery Modal Shell with Extra-Wide Touch & Mouse Scrollbar */
+.modal-content.gallery-modal-shell {
+    max-width: 720px;
+    width: 92%;
+    max-height: 86vh;
+    max-height: 86dvh;
+    padding: 20px 16px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.gallery-scroll-area {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 14px;
+    align-items: stretch;
+}
+
+.gallery-scroll-body {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.gallery-scroll-body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.gallery-scrollbar-track {
+    width: 28px;
+    flex-shrink: 0;
+    background: #10141a;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    position: relative;
+    cursor: pointer;
+    touch-action: none;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.65);
+}
+
+.gallery-scrollbar-track.hidden {
+    display: none;
+}
+
+.gallery-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    left: 2px;
+    right: 2px;
+    height: 72px;
+    border-radius: 11px;
+    background: linear-gradient(180deg, #5ca8ff 0%, #2e78d6 100%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    cursor: grab;
+    touch-action: none;
+    will-change: transform;
+}
+
+/* Tactile grip lines in the center of the wide scrollbar thumb */
+.gallery-scrollbar-thumb::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    right: 5px;
+    height: 10px;
+    transform: translateY(-50%);
+    background: repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.7) 0px,
+        rgba(255, 255, 255, 0.7) 2px,
+        transparent 2px,
+        transparent 4px
+    );
+}
+
+.gallery-scrollbar-thumb:hover,
+.gallery-scrollbar-thumb.dragging {
+    background: linear-gradient(180deg, #79b8ff 0%, #3d8bfd 100%);
+    cursor: grabbing;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(248, 113, 113, 0.5);
+}
+
+/* Gallery Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.gallery-card {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0d1117;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.gallery-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+}
+
+.gallery-card img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-card-title {
+    padding: 8px;
+    font-size: 13px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Difficulty & Options Selector */
+.option-group {
+    margin-bottom: 20px;
+}
+
+.option-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.piece-count-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.piece-btn {
+    flex: 1;
+    min-width: 70px;
+    text-align: center;
+    padding: 10px;
+    background: #0d1117;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.piece-btn:hover {
+    background: #21262d;
+    border-color: var(--accent);
+}
+
+.piece-btn.active {
+    background: var(--accent);
+    border-color: var(--accent-hover);
+    color: #ffffff;
+}
+
+/* Victory Popup */
+.victory-card {
+    text-align: center;
+    padding: 30px;
+}
+
+.victory-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+}
+
+.victory-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #3fb950;
+}
+
+
+/* iPad mini 2 (4:3 aspect ratio, 768x1024 portrait / 1024x768 landscape) Optimization */
+@media (max-width: 1024px) {
+    header {
+        height: 48px;
+        padding: 0 10px;
+    }
+
+    .logo-icon {
+        font-size: 20px;
+    }
+
+    .logo-title {
+        font-size: 16px;
+    }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .progress-container {
+        font-size: 12px;
+    }
+
+    .progress-bar-bg {
+        width: 70px;
+        height: 6px;
+    }
+}
+
+@media (max-width: 820px) {
+    .logo-title {
+        display: none;
+    }
+    .btn span.btn-text {
+        display: none;
+    }
+    .btn {
+        padding: 7px 11px;
+    }
+}
+
+/* Smartphone & Touch Optimization */
+@media (max-width: 600px) {
+    header {
+        height: 50px;
+        padding: 0 8px;
+    }
+
+    .logo-title {
+        display: none;
+    }
+
+    .nav-actions {
+        gap: 6px;
+    }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .btn span.btn-text {
+        display: none;
+    }
+
+    .progress-bar-bg {
+        width: 60px;
+    }
+
+    .modal-content {
+        padding: 16px;
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .piece-count-selector {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Collapsible Header (triggered by bottom-right Menü button — zero GPU backdrop-filter overhead) */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 52px;
+    background: rgba(22, 26, 33, 0.97);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 45;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-100%);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.24s;
+}
+
+header.visible {
+    visibility: visible;
+    pointer-events: auto;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+    transform: translateY(0);
+}
+
+#btnCloseHeader {
+    padding: 6px 12px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+#btnCloseHeader:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Full-bleed canvas layout (iPad 8 Safari & Fullscreen safe) */
+main {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+}

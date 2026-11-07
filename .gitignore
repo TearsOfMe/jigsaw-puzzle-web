@@ -1,0 +1,25 @@
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Dependencies & local env
+node_modules/
+.env
+.env.*
+
+# Root-level scratch, contour-extraction & Playwright debug artifacts
+/*.png
+!/apple-touch-icon.png
+/*.jpg
+/*.jpeg
+/*.bmp
+/*.webp
+/*.svg
+/*.json
+!/manifest.json
+/profile_code.js

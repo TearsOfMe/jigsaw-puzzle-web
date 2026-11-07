@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Jigsaw">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4a2c18">
+    <title>Jigsaw Puzzles</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="assets/icons/icon-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
+    <link rel="stylesheet" href="src/css/style.css?v=20261107_pwa">
+</head>
+<body>
+    <header id="mainHeader">
+        <div class="logo-area">
+            <span class="logo-icon">🧩</span>
+            <span class="logo-title">Jigsaw Puzzles</span>
+        </div>
+
+        <div class="progress-container">
+            <span id="progressText">0 / 90</span>
+            <div class="progress-bar-bg">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <div class="nav-actions">
+            <button id="btnGhost" class="btn" title="Vorschau-Bild auf dem Brett anzeigen">
+                <span class="btn-icon">👁️</span> <span class="btn-text">Vorschau</span>
+            </button>
+            <button id="btnReturnTray" class="btn" title="Lose Teile zurueck in die Ablage aufraeumen"><span class="btn-icon">📥</span> <span class="btn-text">Aufraeumen</span></button> <button id="btnEdges" class="btn" title="Nur Randteile hervorheben">
+                <span class="btn-icon">🔲</span> <span class="btn-text">Ränder</span>
+            </button>
+            <button id="btnHint" class="btn" title="Ein passendes Teil einsetzen">
+                <span class="btn-icon">💡</span> <span class="btn-text">Tipp</span>
+            </button>
+            <button id="btnSound" class="btn" title="Sound umschalten">
+                <span id="soundIcon">🔊</span>
+            </button>
+            <button id="btnFullscreen" class="btn" title="Vollbildmodus aktivieren/deaktivieren">
+                <span id="fullscreenIcon">⛶</span> <span class="btn-text">Vollbild</span>
+            </button>
+            <button id="btnGallery" class="btn btn-primary" title="Neues Puzzle wählen">
+                <span class="btn-icon">🖼️</span> <span class="btn-text">Galerie</span>
+            </button>
+            <button id="btnCloseHeader" class="btn" title="Menü schließen">
+                <span class="btn-icon">✕</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="gameArea">
+        <canvas id="puzzleCanvas"></canvas>
+    </main>
+
+    <!-- Modal: Gallery & Puzzle Selection -->
+    <div id="galleryModal" class="modal-overlay">
+        <div class="modal-content gallery-modal-shell">
+            <div class="modal-title">
+                <span>Puzzle auswählen</span>
+                <button class="close-btn" id="closeGalleryBtn">&times;</button>
+            </div>
+
+            <div class="gallery-scroll-area">
+                <div class="gallery-scroll-body" id="galleryScrollBody">
+                    <div class="option-group">
+                        <div class="option-label">Schwierigkeit (Teileanzahl)</div>
+                        <div class="piece-count-selector" id="difficultySelector">
+                            <button class="piece-btn active" data-rows="9" data-cols="10">⭐ 90 Teile (Standard)</button>
+                            <button class="piece-btn" data-rows="3" data-cols="4">12 Teile</button>
+                            <button class="piece-btn" data-rows="4" data-cols="6">24 Teile</button>
+                            <button class="piece-btn" data-rows="6" data-cols="8">48 Teile</button>
+                            <button class="piece-btn" data-rows="10" data-cols="15">150 Teile</button>
+                            <button class="piece-btn" data-rows="12" data-cols="18">216 Teile</button>
+                            <button class="piece-btn" data-rows="15" data-cols="20">300 Teile</button>
+                            <button class="piece-btn" data-rows="16" data-cols="25">400 Teile</button>
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="checkbox" id="chkRotation"> 
+                            <span><strong>Rotationsmodus aktivieren</strong> (Teile mit Rechtsklick / Doppel-Tap drehen)</span>
+                        </label>
+                    </div>
+
+                    <div class="option-group" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="file" id="fileUpload" accept="image/*" style="display: none;">
+                        <button class="btn" onclick="document.getElementById('fileUpload').click()">
+                            <span>📁</span> Eigenes Bild wählen...
+                        </button>
+                        <input type="file" id="silhouetteUpload" accept="image/*,.svg" style="display: none;">
+                        <button class="btn" onclick="document.getElementById('silhouetteUpload').click()" title="Beliebiges Bild mit Puzzleteil-Silhouetten per Flood-Fill-Pixelscanner einlesen">
+                            <span>🧩</span> Silhouetten-Bild scannen...
+                        </button>
+                        <button id="btnResetSilhouette" class="btn" style="display: none;" title="Zurück zu den Standard-Silhouetten">
+                            <span>↺</span> Standard-Silhouetten
+                        </button>
+                        <button id="btnGenRandom" class="btn btn-primary" style="background: linear-gradient(135deg, #2e78d6, #7928ca); border: none;">
+                            <span>🎲✨</span> Neues Zufallsbild generieren
+                        </button>
+                    </div>
+                    <div id="scannerStatusInfo" style="font-size: 12.5px; color: #9ec5fe; margin-bottom: 14px;"></div>
+
+                    <div class="option-label">Kuratierte HD-Galerie</div>
+                    <div class="gallery-grid" id="galleryGrid">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <div class="gallery-scrollbar-track" id="galleryScrollbarTrack" aria-hidden="true">
+                    <div class="gallery-scrollbar-thumb" id="galleryScrollbarThumb"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Victory celebration -->
+    <div id="victoryModal" class="modal-overlay">
+        <div class="modal-content victory-card">
+            <div class="victory-icon">🎉</div>
+            <div class="victory-title">Hervorragend gelöst!</div>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Du hast das Puzzle erfolgreich zusammengesetzt.</p>
+            <button id="btnPlayAgain" class="btn btn-primary" style="padding: 10px 24px; font-size: 15px;">
+                Nächstes Puzzle spielen
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/js/audio.js?v=20261107_galscroll"></script>
+    <script src="src/js/puzzle_generator.js?v=20261107_galscroll"></script>
+    <script src="src/js/game.js?v=20261107_galscroll"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('puzzleCanvas');
+            const game = new JigsawGame(canvas); window.game = game;
+
+            const gallery = [
+                // Tiere & Wildlife
+                { title: 'Golden Retriever', category: 'Tiere', src: 'assets/images/golden_retriever.jpg' },
+                { title: 'Süße Katze', category: 'Tiere', src: 'assets/images/cute_cat.jpg' },
+                { title: 'Bengalischer Tiger', category: 'Tiere', src: 'assets/images/tiger_wildlife.jpg' },
+                { title: 'Bunter Papagei', category: 'Tiere', src: 'assets/images/colorful_macaw.jpg' },
+                
+                // Natur & Landschaften
+                { title: 'Bergsee & Alpen', category: 'Natur', src: 'assets/images/nature_mountain.jpg' },
+                { title: 'Nordlichter (Aurora)', category: 'Natur', src: 'assets/images/aurora_borealis.jpg' },
+                { title: 'Herbstwald', category: 'Natur', src: 'assets/images/autumn_forest.jpg' },
+                { title: 'Dschungel-Wasserfall', category: 'Natur', src: 'assets/images/waterfall_jungle.jpg' },
+                { title: 'Schweizer Matterhorn', category: 'Natur', src: 'assets/images/swiss_matterhorn.jpg' },
+                { title: 'Tropischer Strand', category: 'Natur', src: 'assets/images/tropical_beach.jpg' },
+                { title: 'Kosmischer Nebel', category: 'Natur', src: 'assets/images/cosmic_nebula.jpg' },
+                { title: 'Korallenriff', category: 'Natur', src: 'assets/images/underwater_coral.jpg' },
+
+                // Reise, Architektur & Kultur
+                { title: 'Japan Kirschblüte', category: 'Reisen', src: 'assets/images/japan_cherry_blossom.jpg' },
+                { title: 'Heißluftballons', category: 'Reisen', src: 'assets/images/hot_air_balloons.jpg' },
+                { title: 'Venedig Kanäle', category: 'Reisen', src: 'assets/images/venice_canals.jpg' },
+                { title: 'Historische Burg', category: 'Reisen', src: 'assets/images/historic_castle.jpg' },
+                { title: 'Gizeh Pyramiden', category: 'Reisen', src: 'assets/images/ancient_pyramids.jpg' },
+                { title: 'Gemütliches Cottage', category: 'Reisen', src: 'assets/images/cozy_cottage.jpg' }
+            ];
+
+            let selectedImage = gallery[0].src;
+            let currentRows = 9;
+            let currentCols = 10;
+            let rotationEnabled = false;
+            let customSilhouetteUrl = null;
+            const scannerStatusInfo = document.getElementById('scannerStatusInfo');
+            const btnResetSilhouette = document.getElementById('btnResetSilhouette');
+
+            game.onScanCompleteCallback = (scanResult) => {
+                if (scannerStatusInfo) {
+                    const isDefaultStanzbogen = !customSilhouetteUrl && currentRows === 9 && currentCols === 10;
+                    const srcLabel = customSilhouetteUrl
+                        ? 'Eigenes Silhouetten-Bild'
+                        : (isDefaultStanzbogen ? 'Original-Stanzbogen silhouette.png (9×10)' : `Stanzbogen-Vorlage ${scanResult.rows}×${scanResult.cols}`);
+                    scannerStatusInfo.textContent = `✓ Flood-Fill-Pixelscanner (${srcLabel}): ${scanResult.pieces.length} Einzel-Alpha-Masken in ${scanResult.scanDurationMs} ms freigestellt • Motiv per source-in ausgestanzt`;
+                }
+            };
+
+            // Populate gallery lazily so 18 HD images are not decoded during gameplay until gallery opens
+            const galleryGrid = document.getElementById('galleryGrid');
+            let galleryImagesHydrated = false;
+            const hydrateGalleryImages = () => {
+                if (galleryImagesHydrated) return;
+                galleryImagesHydrated = true;
+                galleryGrid.querySelectorAll('img[data-src]').forEach((imgEl) => {
+                    imgEl.src = imgEl.dataset.src;
+                    imgEl.removeAttribute('data-src');
+                });
+            };
+            gallery.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.innerHTML = `
+                    <img data-src="${item.src}" alt="${item.title}" loading="lazy" decoding="async">
+                    <div class="gallery-card-title">${item.title}</div>
+                `;
+                card.addEventListener('click', () => {
+                    selectedImage = item.src;
+                    startNewGame();
+                });
+                galleryGrid.appendChild(card);
+            });
+
+            // Difficulty buttons
+            const diffButtons = document.querySelectorAll('#difficultySelector .piece-btn');
+            diffButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    diffButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentRows = parseInt(btn.dataset.rows);
+                    currentCols = parseInt(btn.dataset.cols);
+                    customSilhouetteUrl = null;
+                    if (btnResetSilhouette) btnResetSilhouette.style.display = 'none';
+                });
+            });
+
+            // Rotation checkbox
+            document.getElementById('chkRotation').addEventListener('change', (e) => {
+                rotationEnabled = e.target.checked;
+            });
+
+            // Custom file upload with mobile downscaling (avoids Android OOM and black canvas textures)
+            document.getElementById('fileUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        const tempImg = new Image();
+                        tempImg.onload = () => {
+                            // Downscale giant smartphone camera photos (e.g. 48MP / 12MP) to standard HD (max 1920px)
+                            const maxDim = 1920;
+                            let w = tempImg.naturalWidth || tempImg.width;
+                            let h = tempImg.naturalHeight || tempImg.height;
+
+                            if (w > maxDim || h > maxDim) {
+                                if (w > h) {
+                                    h = Math.round((h * maxDim) / w);
+                                    w = maxDim;
+                                } else {
+                                    w = Math.round((w * maxDim) / h);
+                                    h = maxDim;
+                                }
+                            }
+
+                            const offCanvas = document.createElement('canvas');
+                            offCanvas.width = w;
+                            offCanvas.height = h;
+                            const offCtx = offCanvas.getContext('2d');
+                            offCtx.drawImage(tempImg, 0, 0, w, h);
+                            selectedImage = offCanvas.toDataURL('image/jpeg', 0.92);
+                            startNewGame();
+                        };
+                        tempImg.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Custom silhouette sheet upload (Flood-Fill Pixel Scanner input)
+            document.getElementById('silhouetteUpload').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    customSilhouetteUrl = evt.target.result;
+                    if (btnResetSilhouette) btnResetSilhouette.style.display = 'inline-flex';
+                    startNewGame();
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
+            });
+
+            if (btnResetSilhouette) {
+                btnResetSilhouette.addEventListener('click', () => {
+                    customSilhouetteUrl = null;
+                    currentRows = 9;
+                    currentCols = 10;
+                    diffButtons.forEach(b => {
+                        const match = parseInt(b.dataset.rows) === 9 && parseInt(b.dataset.cols) === 10;
+                        b.classList.toggle('active', match);
+                    });
+                    btnResetSilhouette.style.display = 'none';
+                    startNewGame();
+                });
+            }
+
+            function startNewGame() {
+                document.getElementById('galleryModal').classList.remove('active');
+                document.getElementById('victoryModal').classList.remove('active');
+                game.loadPuzzle(selectedImage, currentRows, currentCols, rotationEnabled, null, customSilhouetteUrl);
+            }
+
+            // Progress callback
+            game.onProgressCallback = (placed, total) => {
+                document.getElementById('progressText').textContent = `${placed} / ${total}`;
+                const pct = total > 0 ? (placed / total) * 100 : 0;
+                document.getElementById('progressBar').style.width = `${pct}%`;
+            };
+
+            // Victory callback
+            game.onCompleteCallback = () => {
+                document.getElementById('victoryModal').classList.add('active');
+            };
+
+                        // Random Puzzle Button (🎲)
+            const btnRandom = document.getElementById('btnRandom');
+            if (btnRandom) {
+                btnRandom.addEventListener('click', () => {
+                    const otherPuzzles = gallery.filter(item => item.src !== selectedImage);
+                    const pick = otherPuzzles[Math.floor(Math.random() * otherPuzzles.length)];
+                    selectedImage = pick.src;
+                    startNewGame();
+                });
+            }
+
+            // Header Close Button (✕)
+            const mainHeader = document.getElementById('mainHeader');
+            const btnCloseHeader = document.getElementById('btnCloseHeader');
+            if (btnCloseHeader && mainHeader) {
+                btnCloseHeader.addEventListener('click', () => {
+                    mainHeader.classList.remove('visible');
+                });
+            }
+
+            // In-Gallery Random Image Generator (🎲✨)
+            const btnGenRandom = document.getElementById('btnGenRandom');
+            if (btnGenRandom) {
+                btnGenRandom.addEventListener('click', () => {
+                    btnGenRandom.innerHTML = '<span>⏳</span> Lade Zufallsbild...';
+                    const randomTimestamp = Date.now();
+                    const randomUrl = `https://picsum.photos/1600/1067?random=${randomTimestamp}`;
+                    
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        selectedImage = randomUrl;
+                        btnGenRandom.innerHTML = '<span>🎲✨</span> Neues Zufallsbild generieren';
+                        startNewGame();
+                    };
+                    img.onerror = () => {
+                        const pick = gallery[Math.floor(Math.random() * gallery.length)];
+                        selectedImage = pick.src;
+                        btnGenRandom.innerHTML = '<span>🎲✨</span> Neues Zufallsbild generieren';
+                        startNewGame();
+                    };
+                    img.src = randomUrl;
+                });
+            }
+
+            // Header Controls
+            const btnGhost = document.getElementById('btnGhost');
+            btnGhost.addEventListener('click', () => {
+                const active = game.toggleGhost();
+                btnGhost.classList.toggle('active', active);
+            });
+
+            const btnReturnTray = document.getElementById('btnReturnTray');
+            if (btnReturnTray) {
+                btnReturnTray.addEventListener('click', () => {
+                    game.returnAllLoosePiecesToTray();
+                });
+            }
+
+            const btnEdges = document.getElementById('btnEdges');
+            btnEdges.addEventListener('click', () => {
+                const active = game.toggleEdgesOnly();
+                btnEdges.classList.toggle('active', active);
+            });
+
+            document.getElementById('btnHint').addEventListener('click', () => {
+                game.hintNextPiece();
+            });
+
+            const btnSound = document.getElementById('btnSound');
+            btnSound.addEventListener('click', () => {
+                const enabled = window.soundManager.toggle();
+                document.getElementById('soundIcon').textContent = enabled ? '🔊' : '🔇';
+            });
+
+            // Fullscreen Toggle
+            const btnFullscreen = document.getElementById('btnFullscreen');
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    const docEl = document.documentElement;
+                    if (docEl.requestFullscreen) {
+                        docEl.requestFullscreen().catch(() => {});
+                    } else if (docEl.webkitRequestFullscreen) {
+                        docEl.webkitRequestFullscreen();
+                    }
+                    document.getElementById('fullscreenIcon').textContent = '✖';
+                    btnFullscreen.classList.add('active');
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                    document.getElementById('fullscreenIcon').textContent = '⛶';
+                    btnFullscreen.classList.remove('active');
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const isFs = !!document.fullscreenElement;
+                document.getElementById('fullscreenIcon').textContent = isFs ? '✖' : '⛶';
+                btnFullscreen.classList.toggle('active', isFs);
+                setTimeout(() => game.resize(), 100);
+            });
+
+            // Wide touch- & mouse-friendly custom scrollbar for Gallery Modal (works identically on iPadOS Safari & Desktop)
+            const galleryScrollBody = document.getElementById('galleryScrollBody');
+            const galleryScrollbarTrack = document.getElementById('galleryScrollbarTrack');
+            const galleryScrollbarThumb = document.getElementById('galleryScrollbarThumb');
+
+            const updateGalleryScrollbar = () => {
+                if (!galleryScrollBody || !galleryScrollbarTrack || !galleryScrollbarThumb) return;
+                const scrollH = galleryScrollBody.scrollHeight;
+                const clientH = galleryScrollBody.clientHeight;
+                const maxScroll = Math.max(0, scrollH - clientH);
+
+                if (maxScroll <= 2) {
+                    galleryScrollbarTrack.classList.add('hidden');
+                    return;
+                }
+                galleryScrollbarTrack.classList.remove('hidden');
+
+                const trackH = galleryScrollbarTrack.clientHeight;
+                const thumbH = Math.max(54, Math.round((clientH / scrollH) * trackH));
+                const maxThumbTop = Math.max(0, trackH - thumbH);
+                const ratio = Math.max(0, Math.min(1, galleryScrollBody.scrollTop / maxScroll));
+                const thumbTop = Math.round(ratio * maxThumbTop);
+
+                galleryScrollbarThumb.style.height = `${thumbH}px`;
+                galleryScrollbarThumb.style.transform = `translateY(${thumbTop}px)`;
+            };
+
+            if (galleryScrollBody && galleryScrollbarTrack && galleryScrollbarThumb) {
+                galleryScrollBody.addEventListener('scroll', updateGalleryScrollbar, { passive: true });
+                window.addEventListener('resize', updateGalleryScrollbar);
+                if (window.ResizeObserver) {
+                    const ro = new ResizeObserver(updateGalleryScrollbar);
+                    ro.observe(galleryScrollBody);
+                    ro.observe(galleryGrid);
+                }
+
+                let draggingScrollbar = false;
+                let dragStartY = 0;
+                let dragStartScrollTop = 0;
+
+                const onScrollbarPointerDown = (e) => {
+                    e.preventDefault();
+                    const trackRect = galleryScrollbarTrack.getBoundingClientRect();
+                    const scrollH = galleryScrollBody.scrollHeight;
+                    const clientH = galleryScrollBody.clientHeight;
+                    const maxScroll = Math.max(1, scrollH - clientH);
+                    const thumbH = galleryScrollbarThumb.offsetHeight || 56;
+                    const maxThumbTop = Math.max(1, trackRect.height - thumbH);
+
+                    if (e.target !== galleryScrollbarThumb) {
+                        // Tapped on track -> jump thumb center directly to tap point
+                        const clickY = e.clientY - trackRect.top - thumbH / 2;
+                        const clampedTop = Math.max(0, Math.min(maxThumbTop, clickY));
+                        galleryScrollBody.scrollTop = (clampedTop / maxThumbTop) * maxScroll;
+                        updateGalleryScrollbar();
+                    }
+
+                    draggingScrollbar = true;
+                    dragStartY = e.clientY;
+                    dragStartScrollTop = galleryScrollBody.scrollTop;
+                    galleryScrollbarThumb.classList.add('dragging');
+                    if (galleryScrollbarTrack.setPointerCapture && e.pointerId !== undefined) {
+                        try { galleryScrollbarTrack.setPointerCapture(e.pointerId); } catch (_) {}
+                    }
+                };
+
+                const onScrollbarPointerMove = (e) => {
+                    if (!draggingScrollbar) return;
+                    e.preventDefault();
+                    const trackH = galleryScrollbarTrack.clientHeight;
+                    const thumbH = galleryScrollbarThumb.offsetHeight || 56;
+                    const maxThumbTop = Math.max(1, trackH - thumbH);
+                    const maxScroll = Math.max(1, galleryScrollBody.scrollHeight - galleryScrollBody.clientHeight);
+                    const deltaY = e.clientY - dragStartY;
+                    galleryScrollBody.scrollTop = dragStartScrollTop + (deltaY / maxThumbTop) * maxScroll;
+                };
+
+                const onScrollbarPointerUp = (e) => {
+                    if (!draggingScrollbar) return;
+                    draggingScrollbar = false;
+                    galleryScrollbarThumb.classList.remove('dragging');
+                    if (galleryScrollbarTrack.releasePointerCapture && e.pointerId !== undefined) {
+                        try { galleryScrollbarTrack.releasePointerCapture(e.pointerId); } catch (_) {}
+                    }
+                };
+
+                galleryScrollbarTrack.addEventListener('pointerdown', onScrollbarPointerDown);
+                galleryScrollbarTrack.addEventListener('pointermove', onScrollbarPointerMove);
+                galleryScrollbarTrack.addEventListener('pointerup', onScrollbarPointerUp);
+                galleryScrollbarTrack.addEventListener('pointercancel', onScrollbarPointerUp);
+                galleryScrollbarTrack.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    galleryScrollBody.scrollTop += e.deltaY;
+                }, { passive: false });
+            }
+
+            const openGalleryModal = () => {
+                hydrateGalleryImages();
+                document.getElementById('galleryModal').classList.add('active');
+                requestAnimationFrame(() => {
+                    updateGalleryScrollbar();
+                    setTimeout(updateGalleryScrollbar, 120);
+                });
+            };
+
+            document.getElementById('btnGallery').addEventListener('click', openGalleryModal);
+
+            document.getElementById('closeGalleryBtn').addEventListener('click', () => {
+                document.getElementById('galleryModal').classList.remove('active');
+            });
+
+            document.getElementById('btnPlayAgain').addEventListener('click', () => {
+                document.getElementById('victoryModal').classList.remove('active');
+                openGalleryModal();
+            });
+
+            // Auto-Restore saved game if available, otherwise load default
+            let restored = false;
+            try {
+                const savedRaw = localStorage.getItem('vortex_jigsaw_savegame');
+                if (savedRaw) {
+                    const saved = JSON.parse(savedRaw);
+                    if (saved && saved.version === 'floodfill_mask_v2' && saved.imgUrl && saved.rows && saved.cols && !saved.isCompleted && saved.pieces && saved.pieces.length > 0) {
+                        selectedImage = saved.imgUrl;
+                        currentRows = saved.rows;
+                        currentCols = saved.cols;
+                        rotationEnabled = !!saved.allowRotation;
+                        document.getElementById('chkRotation').checked = rotationEnabled;
+                        diffButtons.forEach(b => {
+                            const match = parseInt(b.dataset.rows) === currentRows && parseInt(b.dataset.cols) === currentCols;
+                            b.classList.toggle('active', match);
+                        });
+                        game.loadPuzzle(selectedImage, currentRows, currentCols, rotationEnabled, saved);
+                        restored = true;
+                    } else {
+                        localStorage.removeItem('vortex_jigsaw_savegame');
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed restoring savegame:', e);
+            }
+
+            if (!restored) {
+                game.loadPuzzle(selectedImage, currentRows, currentCols, rotationEnabled, null, customSilhouetteUrl);
+            }
+
+            // Register Offline PWA Service Worker (active on HTTPS or localhost; silently skipped on plain HTTP LAN)
+            if ('serviceWorker' in navigator && window.isSecureContext) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js').catch((err) => {
+                        console.warn('Service Worker Registrierung fehlgeschlagen:', err);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
